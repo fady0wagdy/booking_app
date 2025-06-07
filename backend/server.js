@@ -1,21 +1,44 @@
 const express = require('express');
 const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
+
 const app = express();
 const port = 3000;
 
-app.use(cors()); // يسمح للـ frontend يتواصل مع السيرفر
-app.use(express.json()); // لتحليل البيانات المرسلة من الـ frontend بصيغة JSON
+app.use(cors());
+app.use(express.json());
 
-// نقطة استقبال بيانات الحجز
+// المسار إلى ملف الحجزات
+const bookingsFile = path.join(__dirname, 'bookings.json');
+
+// تأكد أن الملف موجود
+if (!fs.existsSync(bookingsFile)) {
+  fs.writeFileSync(bookingsFile, '[]');
+}
+
+// استقبال بيانات الحجز
 app.post('/api/book', (req, res) => {
-  const bookingData = req.body;
-  console.log('New Booking:', bookingData);
+  const newBooking = req.body;
+  console.log('✅ New Booking:', newBooking);
 
-  // هنا ممكن تخزن الحجز في قاعدة بيانات، أو تبعته لإيميل، أو غيره
-  res.json({ message: 'Booking received successfully!', data: bookingData });
+  // نقرأ الحجزات القديمة
+  const bookings = JSON.parse(fs.readFileSync(bookingsFile, 'utf8'));
+  bookings.push(newBooking);
+
+  // نحفظها في الملف
+  fs.writeFileSync(bookingsFile, JSON.stringify(bookings, null, 2));
+
+  res.json({ message: 'Booking saved successfully!', data: newBooking });
+});
+
+// عرض كل الحجزات (اختياري)
+app.get('/api/bookings', (req, res) => {
+  const bookings = JSON.parse(fs.readFileSync(bookingsFile, 'utf8'));
+  res.json(bookings);
 });
 
 // تشغيل السيرفر
 app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+  console.log(`🚀 Server running on http://localhost:${port}`);
 });

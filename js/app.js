@@ -23,15 +23,29 @@ courses.forEach(course => {
     <p><strong>Instructor:</strong> ${course.instructor}</p>
     <p><strong>Date:</strong> ${course.date}</p>
     <p><strong>Price:</strong> ${course.price}</p>
-    <button>Book Now</button>
+    
+    <form class="booking-form">
+      <input type="text" placeholder="Your Name" name="name" required />
+      <input type="email" placeholder="Your Email" name="email" required />
+      <textarea placeholder="Your Message" name="message"></textarea>
+      <button type="submit">Book Now</button>
+    </form>
   `;
 
-  // نضيف وظيفة للزر
-  const button = div.querySelector("button");
-  button.addEventListener("click", () => {
+  const form = div.querySelector("form");
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault(); // ما نخليش الصفحة تعيد التحميل
+
+    const name = form.name.value;
+    const email = form.email.value;
+    const message = form.message.value;
+
     const bookingData = {
       courseTitle: course.title,
-      user: "Test User", // في المستقبل نربطه بنموذج
+      name,
+      email,
+      message,
       date: new Date().toISOString()
     };
 
@@ -42,14 +56,15 @@ courses.forEach(course => {
       },
       body: JSON.stringify(bookingData)
     })
-      .then(response => response.json())
+      .then(res => res.json())
       .then(data => {
-        alert("✅ Booking sent! Server says: " + data.message);
+        alert("✅ Booking sent successfully!");
         console.log(data);
+        form.reset(); // نفضي الفورم بعد الإرسال
       })
-      .catch(error => {
-        alert("❌ Error sending booking.");
-        console.error(error);
+      .catch(err => {
+        alert("❌ Failed to send booking.");
+        console.error(err);
       });
   });
 
